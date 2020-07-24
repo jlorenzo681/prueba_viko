@@ -21,4 +21,19 @@ class DefaultController extends AbstractController
             'user_name' => $user->getUsername()
         ]);
     }
+
+    /**
+     * @Route("/reset_password", name="reset_password")
+     */
+    public function resetPassword(): \Symfony\Component\HttpFoundation\Response
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+
+        return $this->render('default/reset_password.html.twig', [
+            'user_name' => $user->getUsername()
+        ]);
+    }
 }

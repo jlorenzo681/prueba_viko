@@ -17,16 +17,12 @@
     </section>
     <section class="container" style="margin-top: 2em">
         <form method="post">
-            {% if app.user %}
-                <div class="mb-3">
-                    You are logged in as {{ app.user.username }}, <a href="{{ path('app_logout') }}">Logout</a>
-                </div>
-            {% endif %}
 
             <div class="field">
                 <label class="label">Username</label>
                 <div class="control has-icons-left has-icons-right">
-                    <input class="input is-success" type="text" placeholder="Username" value="{{ last_username }}"
+                    <input name="username" class="input is-success" type="text" placeholder="Username"
+                           value="{{ last_username }}"
                            id="inputUsername" required autofocus>
                     <span class="icon is-small is-left">
                       <i class="fas fa-user"></i>
@@ -38,7 +34,7 @@
             <div class="field">
                 <label class="label">Password</label>
                 <div class="control has-icons-left has-icons-right">
-                    <input class="input is-success" type="password" placeholder="Password" value=""
+                    <input name="password" class="input is-success" type="password" placeholder="Password" value=""
                            id="inputPassword" required>
                     <span class="icon is-small is-left">
                       <i class="fas fa-key"></i>

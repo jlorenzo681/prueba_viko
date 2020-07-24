@@ -3,8 +3,6 @@
 namespace App\Security;
 
 use App\Repository\UserRepository;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -25,10 +23,9 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
 
     public const LOGIN_ROUTE = 'app_login';
 
-    private $userRepository;
     private $urlGenerator;
     private $csrfTokenManager;
-    private $user;
+    private $userRepository;
 
     public function __construct(
         UrlGeneratorInterface $urlGenerator,
@@ -53,6 +50,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
             'password' => $request->request->get('password'),
             'csrf_token' => $request->request->get('_csrf_token'),
         ];
+
         $request->getSession()->set(
             Security::LAST_USERNAME,
             $credentials['username']
@@ -69,26 +67,27 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
         $token = new CsrfToken('authenticate', $credentials['csrf_token']);
+
         if (!$this->csrfTokenManager->isTokenValid($token)) {
-            throw new InvalidCsrfTokenException();
+            throw new InvalidCsrfTokenException('CSRF Token not valid.');
         }
 
-        $this->user = $this->userRepository->findOneBy(['username' => $credentials['username']]);
+        $user = $this->userRepository->findOneBy(['username' => $credentials['username']]);
 
-        if (!$this->user) {
+        if (!$user) {
             // fail authentication with a custom error
             throw new CustomUserMessageAuthenticationException('Username could not be found.');
         }
 
-        return $this->user;
+        return $user;
     }
 
     /**
      * @param mixed $credentials
      * @param UserInterface $user
      * @return bool
-     * @throws ORMException
-     * @throws OptimisticLockException
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function checkCredentials($credentials, UserInterface $user): bool
     {
@@ -101,7 +100,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
             throw new CustomUserMessageAuthenticationException('User and password do not match');
         }
 
-        if($this->user->getBlocked()) {
+        if ($this->userRepository->checkBlocked($user)) {
             $this->userRepository->resetRetryCount($user);
             $this->userRepository->unblockUser($user);
             throw new CustomUserMessageAuthenticationException('Reset');
@@ -109,7 +108,6 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
 
         return true;
     }
-
 
     /**
      * Used to upgrade (rehash) the user's password automatically over time.

@@ -76,6 +76,19 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
     /**
      * @param UserInterface $user
+     * @return bool
+     */
+    public function checkBlocked(UserInterface $user): bool
+    {
+        if (!$user instanceof User) {
+            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', \get_class($user)));
+        }
+
+        return $user->getBlocked();
+    }
+
+    /**
+     * @param UserInterface $user
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
