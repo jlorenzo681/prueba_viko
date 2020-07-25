@@ -75,8 +75,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         $user = $this->userRepository->findOneBy(['username' => $credentials['username']]);
 
         if (!$user) {
-            // fail authentication with a custom error
-            throw new CustomUserMessageAuthenticationException('Username could not be found.');
+            throw new CustomUserMessageAuthenticationException('Username could not be found');
         }
 
         return $user;
@@ -85,7 +84,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
     /**
      * @param mixed $credentials
      * @param UserInterface $user
-     * @return bool
+     * @return bool|string
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
@@ -94,16 +93,10 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         if ($user->getPassword() !== $credentials['password']) {
             if ($this->userRepository->increaseRetryCount($user) > 2) {
                 $this->userRepository->blockUser($user);
-                throw new CustomUserMessageAuthenticationException('User has been blocked');
+                throw new CustomUserMessageAuthenticationException('User has been blocked after multiple failed attempts');
             }
 
             throw new CustomUserMessageAuthenticationException('User and password do not match');
-        }
-
-        if ($this->userRepository->checkBlocked($user)) {
-            $this->userRepository->resetRetryCount($user);
-            $this->userRepository->unblockUser($user);
-            throw new CustomUserMessageAuthenticationException('Reset');
         }
 
         return true;
@@ -119,13 +112,27 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         return $credentials['password'];
     }
 
+    /**
+     * @param Request $request
+     * @param TokenInterface $token
+     * @param \Symfony\Component\Security\Guard\string $providerKey
+     * @return null|RedirectResponse|\Symfony\Component\HttpFoundation\Response
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Exception
+     */
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
+        if ($this->userRepository->checkBlocked($token->getUser())) {
+            $this->userRepository->resetRetryCount($token->getUser());
+            $this->userRepository->unblockUser($token->getUser());
+            return new RedirectResponse($this->urlGenerator->generate('reset_password'));
+        }
+
         if ($targetPath = $this->getTargetPath($request->getSession(), $providerKey)) {
             return new RedirectResponse($targetPath);
         }
 
-        // For example : return new RedirectResponse($this->urlGenerator->generate('some_route'));
         throw new \Exception('TODO: provide a valid redirect inside ' . __FILE__);
     }
 
