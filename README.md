@@ -1,41 +1,37 @@
 # prueba_viko
+
+This is a test to show basic authentication using Symfony, password is UNSECURE for testing purposes
  
-REQUISITOS
-1. Instalar Git
-2. Instalar composer
-3. Instalar el binario de Symfony: https://symfony.com/download
-4. Servidor de base de datos MySQL/MariaDB en local
+REQUIREMENTS
+1. Install Git
+2. Install composer
+3. Install Symfony binary: https://symfony.com/download
+4. Install MySQL/MariaDB server
 
 
-INSTALACIÓN
-1. Clonar el proyecto
-
+INSTALLATION
+1. Clone project
 git clone https://github.com/jlorenzo681/prueba_viko.git
 
 
-2. Entrar en el directorio
-
+2. Change to base directory
 cd prueba_viko
 
 
-3. Instalar las dependencias
-
+3. Install dependencies
 composer install
 
 
-4. Crear base de datos y tablas
-
+4. Create database and migrations
 php bin/console doctrine:database:create
-
 php bin/console doctrine:migrations:migrate
 
 
-5. Importar user.sql
+5. Import file user.sql
 
 
-6. Editar el fichero .env para utilizar una cadena de conexión a BD válida, editando las variables db_user, db_password
+6. Edit .env to use a valid DB connection, edit variables db_user and db_password
 
 
-7. Arrancar el servidor de pruebas
-
+7. Start the server
 symfony server:start
